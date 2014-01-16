@@ -95,8 +95,14 @@ public class MergeJMockitMojo extends AbstractMojo {
     String oldOutput = System.setProperty(OUTPUT_DIR_PROP,
         outputDir.getAbsolutePath());
     String oldFormat = System.setProperty(OUTPUT_FMT_PROP, outputFormat);
+    
+    String[] resolvedFileNames = new String[includedFiles.size()];
+    int i = 0;
+    for(String file : includedFiles){
+      resolvedFileNames[i] = new File(coverageFiles.getDirectory(), file).getAbsolutePath();
+    }
 
-    CodeCoverage.main(includedFiles.toArray(new String[includedFiles.size()]));
+    CodeCoverage.main(includedFiles.toArray(resolvedFileNames));
 
     if(oldOutput!=null)
       System.setProperty(OUTPUT_DIR_PROP, oldOutput);

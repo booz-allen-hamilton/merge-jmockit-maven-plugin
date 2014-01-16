@@ -54,13 +54,38 @@
         <version>2.16</version>
         <configuration>
           <systemPropertyVariables>
-            <coverage-outputDir>target/test-coverage-report</coverage-outputDir>
             <coverage-output>serial</coverage-output>
           </systemPropertyVariables>
           <additionalClasspathElements>
             <additionalClasspathElement>${settings.localRepository}/com/googlecode/jmockit/jmockit-coverage/@jmockit.coverage.version@/jmockit-coverage-@jmockit.coverage.version@.jar</additionalClasspathElement>
           </additionalClasspathElements>
         </configuration>
+        <executions>
+          <execution>
+            <id>exec-2</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <systemPropertyVariables>
+                <coverage-outputDir>target/test-coverage-report-1</coverage-outputDir>
+              </systemPropertyVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>exec-1</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <systemPropertyVariables>
+                <coverage-outputDir>target/test-coverage-report-2</coverage-outputDir>
+              </systemPropertyVariables>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

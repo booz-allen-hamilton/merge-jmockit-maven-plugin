@@ -42,7 +42,7 @@ import org.apache.maven.project.MavenProject;
 @Mojo(name = "merge-jmockit", defaultPhase = LifecyclePhase.VERIFY)
 public class MergeJMockitMojo extends AbstractMojo {
 
-  @Parameter(defaultValue = "${project}", required=true, readonly=true)
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
   /**
@@ -63,20 +63,36 @@ public class MergeJMockitMojo extends AbstractMojo {
   @Parameter(defaultValue = "html", property = "coverage-output", required = true)
   String outputFormat;
 
+  private FileSetManager fileSetManager;
+
   static final String OUTPUT_DIR_PROP = "coverage-outputDir";
   static final String OUTPUT_FMT_PROP = "coverage-output";
 
+  public MergeJMockitMojo() {
+    this.fileSetManager = new FileSetManager();
+  }
+  
+  public MergeJMockitMojo(FileSet coverageFiles, FileSetManager fileManager,
+      MavenProject project, File outputDir, String outputFormat) {
+    this.fileSetManager = fileManager;
+    this.coverageFiles = coverageFiles;
+    this.project = project;
+    this.outputDir = outputDir;
+    this.outputFormat = outputFormat;
+  }
+
   public void execute() throws MojoExecutionException {
     if (coverageFiles.getDirectory() == null) {
-      getLog().info("No coverage directory specified, using project base directory.");
+      getLog().info(
+          "No coverage directory specified, using project base directory.");
       coverageFiles.setDirectory(project.getBasedir().getAbsolutePath());
     }
-    if(coverageFiles.getIncludes().size() == 0){
-      getLog().info("No coverage includes specified, using the default (**/coverage.ser)");
+    if (coverageFiles.getIncludes().size() == 0) {
+      getLog()
+          .info(
+              "No coverage includes specified, using the default (**/coverage.ser)");
       coverageFiles.setIncludes(asList("**/coverage.ser"));
     }
-
-    FileSetManager fileSetManager = new FileSetManager();
 
     Set<String> includedFiles = new HashSet<String>(
         asList(fileSetManager.getIncludedFiles(coverageFiles)));
@@ -84,29 +100,34 @@ public class MergeJMockitMojo extends AbstractMojo {
         asList(fileSetManager.getExcludedFiles(coverageFiles)));
     includedFiles.removeAll(excludedFiles);
 
-    
-    if(includedFiles.size() == 0){
-      getLog().info("No files found to merge.");
-      return;
-    } else {
-      getLog().info("The following files will be merged: " + includedFiles);
-    }
-    
     String oldOutput = System.setProperty(OUTPUT_DIR_PROP,
         outputDir.getAbsolutePath());
     String oldFormat = System.setProperty(OUTPUT_FMT_PROP, outputFormat);
-    
+
     String[] resolvedFileNames = new String[includedFiles.size()];
     int i = 0;
-    for(String file : includedFiles){
-      resolvedFileNames[i] = new File(coverageFiles.getDirectory(), file).getAbsolutePath();
+    for (String file : includedFiles) {
+      String filePath = new File(coverageFiles.getDirectory(), file)
+      .getAbsolutePath();
+      getLog().debug("Adding file path:" + filePath);
+      resolvedFileNames[i] = filePath;
+      i++;
     }
 
-    CodeCoverage.main(includedFiles.toArray(resolvedFileNames));
+    if (resolvedFileNames.length == 0) {
+      getLog().info("No files found to merge.");
+      return;
+    } else {
+      getLog().info(
+          "The following files will be merged: "
+              + Arrays.toString(resolvedFileNames));
+    }
 
-    if(oldOutput!=null)
+    CodeCoverage.main(resolvedFileNames);
+
+    if (oldOutput != null)
       System.setProperty(OUTPUT_DIR_PROP, oldOutput);
-    if(oldFormat!=null)
+    if (oldFormat != null)
       System.setProperty(OUTPUT_FMT_PROP, oldFormat);
 
   }
